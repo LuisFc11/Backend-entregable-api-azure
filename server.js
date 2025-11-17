@@ -13,49 +13,44 @@ dotenv.config();
 
 const app = express();
 
-// ====== MIDDLEWARES ======
+// CORS MUY PERMISIVO (para tarea)
+app.use(
+  cors({
+    origin: '*', // acepta cualquier origen
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  })
+);
 
-// CORS abierto mientras pruebas (luego lo restringes)
-app.use(cors());
+// ❌ IMPORTANTE: nada de app.options('*', cors()); eso es lo que te daba el error
 
 app.use(express.json());
 
-// Puerto (Render pone PORT en env)
 const PORT = process.env.PORT || 4000;
 
-// ====== CONEXIÓN A MONGODB ======
+// Conexión a MongoDB
 const connectDB = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI);
-    console.log("Conectado a MongoDB exitosamente 🚀");
+    console.log('Conectado a MongoDB exitosamente 🚀');
   } catch (error) {
-    console.error("Error al conectar a MongoDB:", error.message);
+    console.error('Error al conectar a MongoDB:', error.message);
     process.exit(1);
   }
 };
 
-// ====== RUTAS DE PRUEBA ======
-app.get("/", (req, res) => {
-  res.json({
-    ok: true,
-    message: "API Online 🚀",
-  });
+// Ruta de prueba
+app.get('/api', (req, res) => {
+  res.json({ message: 'Servidor funcionando correctamente 🚀' });
 });
 
-app.get("/api", (req, res) => {
-  res.json({
-    ok: true,
-    message: "Servidor funcionando correctamente 🚀",
-  });
-});
+// Rutas
+app.use('/api/products', productsRouter);
+app.use('/api/categories', categoriesRouter);
+app.use('/api/users', usersRouter);
+app.use('/api/chat', chatRouter);
 
-// ====== RUTAS PRINCIPALES ======
-app.use("/api/products", productsRouter);
-app.use("/api/categories", categoriesRouter);
-app.use("/api/users", usersRouter);
-app.use("/api/chat", chatRouter);
-
-// ====== INICIAR SERVIDOR ======
+// Inicia servidor
 connectDB().then(() => {
   app.listen(PORT, () => {
     console.log(`Servidor corriendo en el puerto ${PORT}`);
